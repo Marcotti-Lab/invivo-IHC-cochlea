@@ -775,6 +775,7 @@ def jupyterPy(tb):
 
     erodeButton.on_click(on_erode_clicked)
 
+
     def on_classify_button(change):
         #try to predict the classes:
 

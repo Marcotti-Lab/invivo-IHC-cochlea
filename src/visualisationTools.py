@@ -115,8 +115,6 @@ def jumpFramesFinder(master,allminima,allmaxima,correctionReferenceTraceDf,tb):
         if ddMenu.value !='Z':
             workingFolder = ddMenu.value + workingFolder[1:]
         
-      
-
         try:
             firstFrame,lastFrame = el['first-last'].split('-')
             firstFrame = int(firstFrame)-1
