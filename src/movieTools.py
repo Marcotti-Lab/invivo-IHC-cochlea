@@ -494,7 +494,7 @@ def jupyterPy(tb):
     loadROIsbutton =  widgets.Button(description='Load labels',button_style = 'primary')
     cellprobSlider = widgets.FloatSlider(description='Cell prob',min=-8,max=8, value = 0,step = 0.1)
 
-    
+    classifyButton = widgets.Button(description='Annotate ROIs',button_style = 'primary')
     radiusWidget = widgets.IntText(value=100,description='Cell radius:',disabled=False)
     areaLimitWidget = widgets.IntText(value=500,description='ROI are cutoff:',disabled=False)
     fig = go.FigureWidget(data=[],layout=go.Layout({ 'autosize':True }))
@@ -534,7 +534,7 @@ def jupyterPy(tb):
     loadKymoShapesButton =  widgets.Button(description='Load kymo shapes',button_style = 'primary')
 
     boxStack  = widgets.VBox([justAvgButton])
-    boxStack2  = widgets.VBox([avgButton,erodeButton,radiusWidget,cellprobSlider])
+    boxStack2  = widgets.VBox([avgButton,erodeButton,classifyButton,radiusWidget,cellprobSlider])
     boxStack3 = widgets.VBox([saveROIsbutton,loadROIsbutton])
     boxStack8 = widgets.VBox([squarifyButton,squareROISSideWidget])
 
@@ -775,6 +775,42 @@ def jupyterPy(tb):
 
     erodeButton.on_click(on_erode_clicked)
 
+    def on_classify_button(change):
+        #try to predict the classes:
+
+        masks = tb.app.layers['Masks'].data
+        arr = tb.app.layers['Avg'].data
+
+        masks = np.pad(masks,((300,300),(300,300)))
+        arr = np.pad(arr,((300,300),(300,300)))
+        annotations = masks.copy()
+        annotations[:] = 0
+        regions =measure.regionprops(masks)
+        for r in regions:
+            xc, yc = r.centroid
+            xc = int(xc)
+            yc = int(yc)
+            avg2 = arr.copy()
+            avg2[masks!=r.label]= 0
+            mask2 = masks.copy()
+            mask2[masks!=r.label]= 0
+
+            out = avg2[xc-hheight:xc+hheight,yc-hwidth:yc+hwidth]
+
+            if (out.shape[0]!= MODELHEIGHT) | (out.shape[1]!= MODELWIDTH):
+                pass
+            else:
+                out = out.reshape((1,MODELHEIGHT,MODELWIDTH,1))
+                celltype = np.argmax(celltypeModel.predict(out))
+                annotations[masks==r.label] = celltype+1
+        annotations = annotations[300:-300,300:-300]
+        try:
+            l = tb.app.layers['Annotations']
+            l.data = annotations
+        except:
+            tb.app.add_labels(annotations,name='Annotations')
+
+    classifyButton.on_click(on_classify_button)
 
     def on_squarifyButton_clicked(change):
         """
