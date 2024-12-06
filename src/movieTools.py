@@ -15,12 +15,13 @@ import tifffile
 from math import floor, ceil
 from skimage import measure
 from cellpose import models
+import tensorflow as tf
 import pyclesperanto_prototype as pyp
 from skimage.measure import  regionprops_table
 from skimage.io import imsave
 import shapely
 
-
+celltypeModel =  tf.keras.models.load_model('C:/Users/LabAdmin/Documents/git-repos/invivo-IHC-cochlea/notebooks/1-MotionCorrection and segmentation/Cell Classifier Train/model.h5') # this model distinguish inner, outer and support cells. Adjust the path accordingly
 #Size of the patches
 MODELHEIGHT = 172
 MODELWIDTH =   216
